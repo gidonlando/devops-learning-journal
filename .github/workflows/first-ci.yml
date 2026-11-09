@@ -22,7 +22,7 @@ jobs:
         run: python3 --version
 
       - name: Verify week 1 notes
-        run: test -f week01/nonexistnotes.md
+        run: test -f week01/notes.md
 
       - name: Finish
         run: echo "All checks passed!"
