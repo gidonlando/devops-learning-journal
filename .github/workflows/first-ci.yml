@@ -1,0 +1,28 @@
+name: First CI Pipeline
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check-repository:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Show Linux version
+        run: uname -a
+
+      - name: Show Python version
+        run: python3 --version
+
+      - name: Verify week 1 notes
+        run: test -f week01/notes.md
+
+      - name: Finish
+        run: echo "All checks passed!"
