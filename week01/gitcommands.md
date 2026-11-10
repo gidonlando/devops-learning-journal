@@ -1,6 +1,10 @@
 # Git Commands
 - `git status` shows the current state of your local Git repository
 
+- `git diff` compares your working directory against the staging area
+  
+- `git diff --staged` compares staged area to last commit
+  
 - `git branch -a` shows all bracnhes, remote and local
 
 - `git branch -avv` shows all your local branches, the remote-tracking branches, their latest commits, and whether they are synchronized
