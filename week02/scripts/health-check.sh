@@ -6,7 +6,7 @@ set -o pipefail
 CPU_THRESHOLD=1.0
 MEMORY_THRESHOLD=80
 SWAP_SPACE_TJRESHHOLD=80
-DISK_THRESHOLD="${2:-85}"
+DISK_THRESHOLD="${2:-1}"
 PROCESS_NAME="${1:-bash}"
 
 # Overall status: 0 = healthy, 1 = warning
