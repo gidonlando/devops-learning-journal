@@ -1,0 +1,4 @@
+du: cannot read directory '/tmp/systemd-private-6cfcb8941a524d25b65e3c8d67ea6e9e-wsl-pro.service-xUETkP': Permission denied
+du: cannot read directory '/tmp/systemd-private-6cfcb8941a524d25b65e3c8d67ea6e9e-systemd-logind.service-k13CWh': Permission denied
+du: cannot read directory '/tmp/systemd-private-6cfcb8941a524d25b65e3c8d67ea6e9e-chrony.service-xMadh4': Permission denied
+du: cannot read directory '/tmp/snap-private-tmp': Permission denied
