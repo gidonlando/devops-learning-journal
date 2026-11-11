@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+if [[ $1 ]]; then
+    echo "there is an argument"
+fi
 counter=1
 
 while (( counter <= $# )); do
