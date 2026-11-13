@@ -1,0 +1,146 @@
+[1mdiff --git a/week02/README.md b/week02/README.md[m
+[1mnew file mode 100644[m
+[1mindex 0000000..7c0e48e[m
+[1m--- /dev/null[m
+[1m+++ b/week02/README.md[m
+[36m@@ -0,0 +1,81 @@[m
+[32m+[m[32m# Linux System Health Monitor[m
+[32m+[m
+[32m+[m[32mA Bash-based Linux system monitoring tool developed as part of my DevOps learning project.[m
+[32m+[m
+[32m+[m[32m## Overview[m
+[32m+[m
+[32m+[m[32mThis project provides a lightweight system health check for Linux environments.[m
+[32m+[m
+[32m+[m[32mIt monitors:[m
+[32m+[m
+[32m+[m[32m- CPU load average normalized by logical CPU count[m
+[32m+[m[32m- Memory utilization[m
+[32m+[m[32m- Root filesystem disk usage[m
+[32m+[m[32m- Presence of a specified process[m
+[32m+[m
+[32m+[m[32mThe script prints a status report and returns a nonzero exit code when a warning is detected.[m
+[32m+[m
+[32m+[m[32m## Requirements[m
+[32m+[m
+[32m+[m[32m- Linux[m
+[32m+[m[32m- Bash[m
+[32m+[m[32m- GNU coreutils[m
+[32m+[m[32m- awk[m
+[32m+[m[32m- procps utilities (`free`, `pgrep`, `nproc`)[m
+[32m+[m
+[32m+[m[32m## Usage[m
+[32m+[m
+[32m+[m[32mFrom the repository root:[m
+[32m+[m
+[32m+[m[32m```bash[m
+[32m+[m[32m./week02/scripts/health-check.sh[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32mTo check a particular process:[m
+[32m+[m
+[32m+[m[32m```bash[m
+[32m+[m[32m./week02/scripts/health-check.sh sshd[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m## Configuration[m
+[32m+[m
+[32m+[m[32mThe script currently uses these thresholds:[m
+[32m+[m
+[32m+[m[32m| Metric | Warning threshold |[m
+[32m+[m[32m|---|---|[m
+[32m+[m[32m| Normalized CPU load | Greater than 1.0 |[m
+[32m+[m[32m| Memory usage | Greater than 80% |[m
+[32m+[m[32m| Disk usage | Greater than 85% |[m
+[32m+[m
+[32m+[m[32mThresholds are configured in the script.[m
+[32m+[m
+[32m+[m[32m## Exit Codes[m
+[32m+[m
+[32m+[m[32m- `0`: All checks passed[m
+[32m+[m[32m- `1`: One or more checks reported a warning[m
+[32m+[m
+[32m+[m[32m## Testing[m
+[32m+[m
+[32m+[m[32mRun:[m
+[32m+[m
+[32m+[m[32m```bash[m
+[32m+[m[32mbash -n week02/scripts/health-check.sh[m
+[32m+[m[32mshellcheck week02/scripts/health-check.sh[m
+[32m+[m[32m./week02/scripts/test-health-check.sh[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m## Limitations[m
+[32m+[m
+[32m+[m[32m- CPU load average is not the same as instantaneous CPU utilization.[m
+[32m+[m[32m- The script checks only the root filesystem.[m
+[32m+[m[32m- Process detection is based on process names.[m
+[32m+[m[32m- The monitor is intended as a learning project, not a replacement for a production observability platform.[m
+[32m+[m
+[32m+[m[32m## Future Improvements[m
+[32m+[m
+[32m+[m[32m- Configurable thresholds via command-line arguments[m
+[32m+[m[32m- More comprehensive automated tests[m
+[32m+[m[32m- Monitoring multiple filesystems[m
+[32m+[m[32m- JSON output for integration with other tools[m
+[32m+[m[32m- CI/CD integration using GitHub Actions[m
+[32m+[m
+[1mdiff --git a/week02/scripts/health-check.sh b/week02/scripts/health-check.sh[m
+[1mindex 4151b68..65cf46a 100755[m
+[1m--- a/week02/scripts/health-check.sh[m
+[1m+++ b/week02/scripts/health-check.sh[m
+[36m@@ -6,7 +6,7 @@[m [mset -o pipefail[m
+ CPU_THRESHOLD=1.0[m
+ MEMORY_THRESHOLD=80[m
+ SWAP_SPACE_TJRESHHOLD=80[m
+[31m-DISK_THRESHOLD="${2:-85}"[m
+[32m+[m[32mDISK_THRESHOLD="${2:-1}"[m
+ PROCESS_NAME="${1:-bash}"[m
+ [m
+ # Overall status: 0 = healthy, 1 = warning[m
+[1mdiff --git a/week02/scripts/test-health-check.sh b/week02/scripts/test-health-check.sh[m
+[1mnew file mode 100755[m
+[1mindex 0000000..a48d95f[m
+[1m--- /dev/null[m
+[1m+++ b/week02/scripts/test-health-check.sh[m
+[36m@@ -0,0 +1,40 @@[m
+[32m+[m[32m#!/usr/bin/env bash[m
+[32m+[m
+[32m+[m[32mset -o pipefail[m
+[32m+[m
+[32m+[m[32mSCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"[m
+[32m+[m[32mMONITOR="$SCRIPT_DIR/health-check.sh"[m
+[32m+[m
+[32m+[m[32mtests_passed=0[m
+[32m+[m[32mtests_failed=0[m
+[32m+[m
+[32m+[m[32mrun_test() {[m
+[32m+[m[32m    local name="$1"[m
+[32m+[m[32m    local expected="$2"[m
+[32m+[m[32m    local process="$3"[m
+[32m+[m[32m    local actual[m
+[32m+[m
+[32m+[m[32m    "$MONITOR" "$process" > /dev/null 2>&1[m
+[32m+[m[32m    actual=$?[m
+[32m+[m
+[32m+[m[32m    if (( actual == expected )); then[m
+[32m+[m[32m        echo "PASS: $name"[m
+[32m+[m[32m        ((tests_passed+=1))[m
+[32m+[m[32m    else[m
+[32m+[m[32m        echo "FAIL: $name (expected $expected, got $actual)"[m
+[32m+[m[32m        ((tests_failed+=1))[m
+[32m+[m[32m    fi[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m# Guaranteed-missing process name for this test[m
+[32m+[m[32mrun_test "Missing process returns warning" 1 "no_such_proc_987"[m
+[32m+[m
+[32m+[m[32mecho[m
+[32m+[m[32mecho "Passed: $tests_passed"[m
+[32m+[m[32mecho "Failed: $tests_failed"[m
+[32m+[m
+[32m+[m[32mif (( tests_failed > 0 )); then[m
+[32m+[m[32m    exit 1[m
+[32m+[m[32mfi[m
+[32m+[m
+[32m+[m[32mexit 0[m
