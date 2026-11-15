@@ -21,7 +21,7 @@ def home():
         f"Visit number: {count}\n"
     )
 
-@app.route("/healthcheck")
+@app.route("/health")
 def health():
     cache.ping()
     return "healthy\n"
