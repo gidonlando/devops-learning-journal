@@ -1,0 +1,54 @@
+
+name: Docker CI
+
+on:
+  push:
+    paths:
+      - "docker-app/**"
+      - ".github/workflows/docker-ci.yml"
+
+  pull_request:
+    paths:
+      - "docker-app/**"
+      - ".github/workflows/docker-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  docker-build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t devops-web:test ./docker-app
+
+      - name: Verify image exists
+        run: docker image inspect devops-web:test
+
+      - name: Start application
+        working-directory: docker-app
+        run: docker compose up -d --build --wait
+
+      - name: Test application endpoint
+        run: |
+          curl --fail --silent --show-error \
+            http://localhost:8000/health
+
+      - name: Show container status
+        if: always()
+        working-directory: docker-app
+        run: docker compose ps
+
+      - name: Show logs on failure
+        if: failure()
+        working-directory: docker-app
+        run: docker compose logs --no-color
+
+      - name: Clean up containers
+        if: always()
+        working-directory: docker-app
+        run: docker compose down -v
