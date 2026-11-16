@@ -1,0 +1,42 @@
+
+name: CI Artifacts and Cache
+
+on:
+  push:
+    paths:
+      - "ci-lab/**"
+      - ".github/workflows/ci-artifacts.yml"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Create test report
+        run: |
+          mkdir -p reports
+          python -m unittest discover \
+            -s ci-lab \
+            -p 'test_*.py' \
+            -v > reports/test-results.txt 2>&1
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-test-report
+          path: reports/test-results.txt
+          if-no-files-found: warn
