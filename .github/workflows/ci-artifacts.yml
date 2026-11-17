@@ -40,3 +40,18 @@ jobs:
           name: python-test-report
           path: reports/test-results.txt
           if-no-files-found: warn
+
+  review:
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download test report
+        uses: actions/download-artifact@v4
+        with:
+          name: python-test-report
+          path: downloaded-report
+
+      - name: Display test report
+        run: cat downloaded-report/test-results.txt
