@@ -1,0 +1,61 @@
+
+name: Deployment Environments Demo
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate application
+        run: |
+          python3 -m unittest discover \
+            -s ci-lab \
+            -p 'test_*.py' \
+            -v
+
+  staging:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Verify staging configuration
+        env:
+          APP_ENV: ${{ vars.APP_ENV }}
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        run: |
+          echo "Environment: $APP_ENV"
+
+          if [ -z "$DEPLOY_TOKEN" ]; then
+            echo "Deployment token is missing"
+            exit 1
+          fi
+
+          echo "Deployment token is configured"
+
+      - name: Simulate staging deployment
+        run: echo "Deploying to staging"
+
+  production:
+    needs: staging
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Verify production environment
+        env:
+          APP_ENV: ${{ vars.APP_ENV }}
+        run: |
+          echo "Environment: $APP_ENV"
+
+      - name: Simulate production deployment
+        run: echo "Deploying to production"
