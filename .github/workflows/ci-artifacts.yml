@@ -54,4 +54,25 @@ jobs:
           path: downloaded-report
 
       - name: Display test report
-        run: cat downloaded-report/test-results.txt
+        run: cat downloaded-report/test-results.txt 
+
+  dependencies:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python with pip cache
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: docker-app/requirements.txt
+
+      - name: Install dependencies
+        run: python -m pip install -r docker-app/requirements.txt
+
+      - name: Verify imports
+        run: python -c "import flask, redis; print('Dependencies OK')"
+
