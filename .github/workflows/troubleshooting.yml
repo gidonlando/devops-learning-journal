@@ -30,6 +30,16 @@ jobs:
           echo "Starting application validation"
           echo "ERROR: Application configuration invalid"
           exit 1
+      
+      - name: Collect diagnostics
+        if: failure()
+        run: |
+          echo "Collecting diagnostic information"
+          pwd
+          ls -la
+          df -h
+          free -h
 
       - name: Final step
         run: echo "Pipeline completed"
+
