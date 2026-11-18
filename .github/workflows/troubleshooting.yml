@@ -1,0 +1,35 @@
+
+name: CI Troubleshooting Lab
+
+on:
+  push:
+    paths:
+      - ".github/workflows/troubleshooting.yml"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  troubleshoot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check Python
+        run: python3 --version
+
+      - name: Check required file
+        run: test -f ci-lab/calculator.py
+
+      - name: Simulate application failure
+        run: |
+          echo "Starting application validation"
+          echo "ERROR: Application configuration invalid"
+          exit 1
+
+      - name: Final step
+        run: echo "Pipeline completed"
